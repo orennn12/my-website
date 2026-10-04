@@ -20,7 +20,7 @@ const CONFIG = {
   schedule: [],
   socials: [
     {label: "TikTok",   url: "https://tiktok.com/@orennn.12" },
-    { label: "YouTube",  url: "https://youtube.com/@orennn12" },
+    { label: "YouTube",  url: "https://youtube.com/@Orennn.12" },
     { label: "Discord",  url: "https://discord.gg/VbQNxP6VR" },
     { label: "Facebook", url: "https://facebook.com/@orennn12" }
   ]

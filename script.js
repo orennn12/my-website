@@ -101,7 +101,7 @@ requestAnimationFrame(() => setTimeout(() => {
   $("progress-text").textContent = CONFIG.progress + "%";
 }, 300));
 
-// Game otomatis dari Discord (via Lanyard)
+// Game otomatis dari Discord (via Lanyard) + ingat aktivitas terakhir
 async function updateNowPlaying() {
   if (!CONFIG.discordId) return;
   try {
@@ -109,20 +109,25 @@ async function updateNowPlaying() {
     const { success, data } = await res.json();
     if (!success) return;
 
-    const game = data.activities.find(a => a.type === 0); // type 0 = sedang main game
+    const act = data.activities.find(a => a.type === 0); // game / aplikasi yang sedang dibuka
     const label = document.querySelector(".now-label");
     const name = document.querySelector(".now-game");
 
-    if (game) {
+    let shown;
+    if (act) {
+      shown = act.name;
       label.textContent = "Sedang dimainkan";
-      name.textContent = game.name;
+      try { localStorage.setItem("lastActivity", act.name); } catch (e) {}
     } else {
+      let last = null;
+      try { last = localStorage.getItem("lastActivity"); } catch (e) {}
+      shown = last || CONFIG.nowPlaying;
       label.textContent = "Terakhir dimainkan";
-      name.textContent = CONFIG.nowPlaying;
     }
+    name.textContent = shown;
 
-    // progress & episode hanya tampil untuk game seri yang kamu isi manual
-    const showSeries = !game || game.name === CONFIG.nowPlaying;
+    // progress & episode hanya untuk game seri yang kamu isi manual
+    const showSeries = shown === CONFIG.nowPlaying;
     document.querySelector(".bar").style.display = showSeries ? "" : "none";
     document.querySelector(".now-meta").style.display = showSeries ? "" : "none";
   } catch (e) { /* kalau gagal, tampilan manual tetap dipakai */ }

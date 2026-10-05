@@ -102,31 +102,37 @@ requestAnimationFrame(() => setTimeout(() => {
 }, 300));
 
 // Game otomatis dari Discord (via Lanyard) + ingat aktivitas terakhir
-async function updateNowPlaying() {
-  if (!CONFIG.discordId) return;
-  try {
-    const res = await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`);
-    const { success, data } = await res.json();
-    if (!success) return;
+// Aktivitas Discord (live + terakhir dimainkan, disimpan di server)
+function timeAgo(ts) {
+  const m = Math.round((Date.now() - ts) / 60000);
+  if (m < 1) return "baru saja";
+  if (m < 60) return m + " menit lalu";
+  const h = Math.round(m / 60);
+  if (h < 24) return h + " jam lalu";
+  return Math.round(h / 24) + " hari lalu";
+}
 
-    const act = data.activities.find(a => a.type === 0); // game / aplikasi yang sedang dibuka
+async function updateNowPlaying() {
+  try {
+    const r = await fetch("/api/now");
+    if (!r.ok) return;
+    const d = await r.json();
     const label = document.querySelector(".now-label");
     const name = document.querySelector(".now-game");
 
     let shown;
-    if (act) {
-      shown = act.name;
+    if (d.live) {
+      shown = d.name;
       label.textContent = "Sedang dimainkan";
-      try { localStorage.setItem("lastActivity", act.name); } catch (e) {}
+    } else if (d.name) {
+      shown = d.name;
+      label.textContent = "Terakhir dimainkan · " + timeAgo(d.at);
     } else {
-      let last = null;
-      try { last = localStorage.getItem("lastActivity"); } catch (e) {}
-      shown = last || CONFIG.nowPlaying;
+      shown = CONFIG.nowPlaying;
       label.textContent = "Terakhir dimainkan";
     }
     name.textContent = shown;
 
-    // progress & episode hanya untuk game seri yang kamu isi manual
     const showSeries = shown === CONFIG.nowPlaying;
     document.querySelector(".bar").style.display = showSeries ? "" : "none";
     document.querySelector(".now-meta").style.display = showSeries ? "" : "none";
